@@ -1,4 +1,4 @@
-namespace OrbitalCore.Parser.Nodes;
+namespace OrbitalCore.Parse.Nodes.Abstract;
 
 public abstract class AbstractExpressionNode(AbstractTreeNode expression1, AbstractTreeNode expression2)
     : AbstractTreeNode

@@ -1,7 +1,8 @@
-using OrbitalCore.Tokens;
+using OrbitalCore.Lex;
 
 namespace OrbitalTests;
 
+[TestFixture]
 public class TokeniserTests
 {
     [Test]
@@ -55,13 +56,25 @@ public class TokeniserTests
     }
 
     [Test]
-    public void Tokeniser_GetTokens_WhenGivenIdentifier_ReturnsIdentifierToken()
+    public void Tokeniser_GetTokens_WhenGivenIdentifier()
     {
         List<Token> tokens = new Tokeniser("test").GetTokens();
         Assert.That(tokens, Has.Count.EqualTo(1));
         Assert.Multiple(() =>
         {
             Assert.That(tokens[0].TokenType, Is.EqualTo(TokenTypes.Identifier));
+            Assert.That(tokens[0].Value, Is.EqualTo("test"));
+        });
+    }
+
+    [Test]
+    public void Tokeniser_GetTokens_WhenGivenString()
+    {
+        List<Token> tokens = new Tokeniser("\"test\"").GetTokens();
+        Assert.That(tokens, Has.Count.EqualTo(1));
+        Assert.Multiple(() =>
+        {
+            Assert.That(tokens[0].TokenType, Is.EqualTo(TokenTypes.String));
             Assert.That(tokens[0].Value, Is.EqualTo("test"));
         });
     }

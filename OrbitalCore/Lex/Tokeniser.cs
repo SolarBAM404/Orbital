@@ -1,7 +1,12 @@
-namespace OrbitalCore.Tokens;
+namespace OrbitalCore.Lex;
 
 public class Tokeniser(string raw)
 {
+    public static List<Token> Tokenise(string raw)
+    {
+        return new Tokeniser(raw).GetTokens();
+    }
+    
     private string _raw = raw;
     private List<Token> _tokens = [];
     private int _index = 0;
@@ -24,9 +29,9 @@ public class Tokeniser(string raw)
                 continue;
             }
             
-            if (char.IsDigit(current))
+            if (current == '-' || char.IsDigit(current))
             {
-                var number = ReadWhile(char.IsDigit);
+                var number = ReadWhile(c => char.IsDigit(c) || c == '.' || c == '-');
                 _tokens.Add(new Token(TokenTypes.Number, number));
                 continue;
             }
@@ -72,13 +77,15 @@ public class Tokeniser(string raw)
                     _tokens.Add(new Token(TokenTypes.Assignment, "="));
                     _index++;
                     break;
+                default:
+                    throw new Exception("Unexpected character: " + current);
             }
             
         }
         return _tokens;
     }
     
-    private string ReadWhile(Func<char, bool> predicate)
+    private string? ReadWhile(Func<char, bool> predicate)
     {
         var result = "";
         while (_index < _raw.Length && predicate(_raw[_index]))
@@ -86,10 +93,16 @@ public class Tokeniser(string raw)
             result += _raw[_index];
             _index++;
         }
+
+        // if (_index != _raw.Length && _raw[_index] != ' ')
+        // {
+        //     _index--;
+        // }
+        
         return result;
     }
     
-    private string ReadString()
+    private string? ReadString()
     {
         var result = "";
         _index++;
@@ -102,7 +115,7 @@ public class Tokeniser(string raw)
         return result;
     }
 
-    private TokenTypes? GetToken(String value)
+    private TokenTypes? GetToken(string? value)
     {
         return value switch
         {
@@ -114,7 +127,6 @@ public class Tokeniser(string raw)
             "disperse" => TokenTypes.Disperse,
             "stable" => TokenTypes.Stable,
             "path" => TokenTypes.Path,
-            "negate" => TokenTypes.Negate,
             "align" => TokenTypes.Align,
             "disrupt" => TokenTypes.Disrupt,
             "above" => TokenTypes.Above,

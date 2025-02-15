@@ -1,4 +1,4 @@
-namespace OrbitalCore.Tokens;
+namespace OrbitalCore.Lex;
 
 public enum TokenTypes
 { 
@@ -17,6 +17,15 @@ public enum TokenTypes
     LeftBrace,
     RightBrace,
     SemiColon,
+    Comma,
+    
+    // Comparison Operators
+    Align, // ==
+    Disrupt, // !=
+    Above, // >
+    Below, // <
+    Safe, // >=
+    Unsafe, // <=
     
     // Mathematical Operators
     Gain, // +
@@ -27,13 +36,4 @@ public enum TokenTypes
     // Logical Operators
     Stable, // &&
     Path, // ||
-    Negate, // !
-    
-    // Comparison Operators
-    Align, // ==
-    Disrupt, // !=
-    Above, // >
-    Below, // <
-    Safe, // >=
-    Unsafe, // <=
 }

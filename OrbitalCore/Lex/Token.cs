@@ -1,7 +1,7 @@
-namespace OrbitalCore.Tokens;
+namespace OrbitalCore.Lex;
 
-public class Token(TokenTypes tokenType, string value)
+public class Token(TokenTypes tokenType, string? value)
 {
     public TokenTypes TokenType { get; } = tokenType;
-    public string Value { get; } = value;
+    public string? Value { get; } = value;
 }

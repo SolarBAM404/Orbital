@@ -93,11 +93,6 @@ public class Tokeniser(string raw)
             result += _raw[_index];
             _index++;
         }
-
-        // if (_index != _raw.Length && _raw[_index] != ' ')
-        // {
-        //     _index--;
-        // }
         
         return result;
     }
@@ -133,6 +128,9 @@ public class Tokeniser(string raw)
             "below" => TokenTypes.Below,
             "safe" => TokenTypes.Safe,
             "unsafe" => TokenTypes.Unsafe,
+            "probe" => TokenTypes.Probe,
+            "scan" => TokenTypes.Scan,
+            "orbit" => TokenTypes.Orbit,
             _ => null
         };
     }

@@ -1,4 +1,6 @@
 using OrbitalCore;
+using OrbitalCore.Exceptions;
+using OrbitalCore.Parse;
 using OrbitalCore.Parse.Nodes;
 using OrbitalCore.Parse.Nodes.BasicTypes;
 using OrbitalCore.Parse.Nodes.Expressions;
@@ -8,6 +10,11 @@ namespace OrbitalTests;
 [TestFixture]
 public class VariableTests
 {
+    [SetUp]
+    public void SetUp()
+    {
+        Parser.GlobalVariables = new Dictionary<string, VariableNode>();
+    }
     
     [Test]
     public void VariableTests_IntegerVariable()
@@ -16,9 +23,7 @@ public class VariableTests
         List<object?> results = Evaluator.EvaluateAndExecute(code);
         Assert.Multiple(() =>
         {
-            Assert.That(results.Count, Is.EqualTo(1));
-            Assert.That(results[0], Is.InstanceOf(typeof(NumberNode)));
-            Assert.That(((NumberNode)results[0]!).Value, Is.EqualTo(1));
+            Assert.That((double)Parser.GlobalVariables["x"].Evaluate()!, Is.EqualTo(1));
         });
     }
     
@@ -29,9 +34,7 @@ public class VariableTests
         List<object?> results = Evaluator.EvaluateAndExecute(code);
         Assert.Multiple(() =>
         {
-            Assert.That(results.Count, Is.EqualTo(1));
-            Assert.That(results[0], Is.InstanceOf(typeof(NumberNode)));
-            Assert.That(((NumberNode)results[0]!).Value, Is.EqualTo(1.5));
+            Assert.That(Parser.GlobalVariables["x"].Evaluate(), Is.EqualTo(1.5d));
         });
     }
     
@@ -42,9 +45,8 @@ public class VariableTests
         List<object?> results = Evaluator.EvaluateAndExecute(code);
         Assert.Multiple(() =>
         {
-            Assert.That(results.Count, Is.EqualTo(1));
-            Assert.That(results[0], Is.InstanceOf(typeof(StringNode)));
-            Assert.That(((StringNode)results[0]!).Value, Is.EqualTo("Hello, World!"));
+            Assert.That(Parser.GlobalVariables["x"].Evaluate(), Is.InstanceOf(typeof(string)));
+            Assert.That(Parser.GlobalVariables["x"].Evaluate(), Is.EqualTo("Hello, World!"));
         });
     }
     
@@ -55,11 +57,10 @@ public class VariableTests
         List<object?> results = Evaluator.EvaluateAndExecute(code);
         Assert.Multiple(() =>
         {
-            Assert.That(results.Count, Is.EqualTo(2));
-            Assert.That(results[0], Is.InstanceOf(typeof(NumberNode)));
-            Assert.That(((NumberNode)results[0]!).Value, Is.EqualTo(1));
-            Assert.That(results[1], Is.InstanceOf(typeof(NumberNode)));
-            Assert.That(((NumberNode)results[1]!).Value, Is.EqualTo(1));
+            Assert.That(Parser.GlobalVariables["x"].Evaluate(), Is.InstanceOf(typeof(Double)));
+            Assert.That((double)Parser.GlobalVariables["x"].Evaluate()!, Is.EqualTo(1));
+            Assert.That(Parser.GlobalVariables["x"].Evaluate(), Is.InstanceOf(typeof(Double)));
+            Assert.That((double)Parser.GlobalVariables["x"].Evaluate()!, Is.EqualTo(1));
         });
     }
     
@@ -70,9 +71,8 @@ public class VariableTests
         List<object?> results = Evaluator.EvaluateAndExecute(code);
         Assert.Multiple(() =>
         {
-            Assert.That(results.Count, Is.EqualTo(1));
-            Assert.That(results[0], Is.InstanceOf(typeof(NumberNode)));
-            Assert.That(((NumberNode)results[0]!).Evaluate(), Is.EqualTo(2));
+            Assert.That(Parser.GlobalVariables["x"].Evaluate(), Is.InstanceOf(typeof(Double)));
+            Assert.That((double)Parser.GlobalVariables["x"].Evaluate()!, Is.EqualTo(2));
         });
     }
     
@@ -83,11 +83,8 @@ public class VariableTests
         List<object?> results = Evaluator.EvaluateAndExecute(code);
         Assert.Multiple(() =>
         {
-            Assert.That(results.Count, Is.EqualTo(2));
-            Assert.That(results[0], Is.InstanceOf(typeof(NumberNode)));
-            Assert.That(((NumberNode)results[0]!).Evaluate(), Is.EqualTo(1));
-            Assert.That(results[1], Is.InstanceOf(typeof(MathematicalBinaryExpressionNode)));
-            Assert.That(((MathematicalBinaryExpressionNode)results[1]!).Evaluate(), Is.EqualTo(2));
+            Assert.That((double)Parser.GlobalVariables["x"].Evaluate()!, Is.EqualTo(1));
+            Assert.That((double)Parser.GlobalVariables["y"].Evaluate()!, Is.EqualTo(2));
         });
     }
 
@@ -98,11 +95,8 @@ public class VariableTests
         List<object?> results = Evaluator.EvaluateAndExecute(code);
         Assert.Multiple(() =>
         {
-            Assert.That(results.Count, Is.EqualTo(3));
-            Assert.That(results[0], Is.InstanceOf(typeof(NumberNode)));
-            Assert.That(((NumberNode)results[0]!).Evaluate(), Is.EqualTo(1));
-            Assert.That(results[1], Is.InstanceOf(typeof(NumberNode)));
-            Assert.That(((NumberNode)results[1]!).Evaluate(), Is.EqualTo(1));
+            Assert.That((double)Parser.GlobalVariables["x"].Evaluate()!, Is.EqualTo(1));
+            Assert.That((double)Parser.GlobalVariables["y"].Evaluate()!, Is.EqualTo(1));
             Assert.That(results[2], Is.EqualTo(true));
         });
     }
@@ -114,13 +108,53 @@ public class VariableTests
         List<object?> results = Evaluator.EvaluateAndExecute(code);
         Assert.Multiple(() =>
         {
-            Assert.That(results.Count, Is.EqualTo(3));
-            Assert.That(results[0], Is.InstanceOf(typeof(StringNode)));
-            Assert.That(((StringNode)results[0]!).Evaluate(), Is.EqualTo("Hello, World!"));
-            Assert.That(results[1], Is.InstanceOf(typeof(StringNode)));
-            Assert.That(((StringNode)results[1]!).Evaluate(), Is.EqualTo("Hello, World!"));
+            Assert.That((string)Parser.GlobalVariables["x"].Evaluate()!, Is.EqualTo("Hello, World!"));
+            Assert.That((string)Parser.GlobalVariables["y"].Evaluate()!, Is.EqualTo("Hello, World!"));
             Assert.That(results[2], Is.EqualTo(true));
         });
     }
+
+    [Test]
+    public void VariableTests_Phase1()
+    {
+        string code = "quickMaths = 10; quickMaths = quickMaths gain 2; uplink(quickMaths);";
+        List<object?> results = Evaluator.EvaluateAndExecute(code);
+        Assert.Multiple(() =>
+        {
+            Assert.That((double)Parser.GlobalVariables["quickMaths"].Evaluate()!, Is.EqualTo(12));
+        });
+    }
+
+    [Test]
+    public void VariableTests_Phase2()
+    {
+        string code = "floatTest = 1.0; floatTest = floatTest gain 5.5; uplink(floatTest);";
+        List<object?> results = Evaluator.EvaluateAndExecute(code);
+        Assert.Multiple(() =>
+        {
+            Assert.That((double)Parser.GlobalVariables["floatTest"].Evaluate()!, Is.EqualTo(6.5));
+        });
+    }
     
+    [Test]
+    public void VariableTests_Phase3()
+    {
+        string code = "stringCatTest = \"10 corgis\"; stringCatTest = stringCatTest gain 5 gain \" more corgis\"; uplink(stringCatTest);";
+        List<object?> results = Evaluator.EvaluateAndExecute(code);
+        Assert.Multiple(() =>
+        {
+            Assert.That((string)Parser.GlobalVariables["stringCatTest"].Evaluate()!, Is.EqualTo("10 corgis5 more corgis"));
+        });
+    }
+
+    [Test]
+    public void VariableTests_Phase4()
+    {
+        string code = "errorTest = 5; errorTest = errorTest gain false; uplink(errorTest);";
+        Assert.Multiple(() =>
+        {
+            Assert.Throws<CastErrorException>(() => Evaluator.EvaluateAndExecute(code));
+        });
+    }
+
 }

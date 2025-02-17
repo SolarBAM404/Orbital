@@ -28,12 +28,17 @@ public static class Evaluator
         {
             AbstractTreeNode node = nodes.Dequeue();
             
-            if (node is (EndOfFileNode or EmptyNode))
+            if (node is (EndOfFileNode or EmptyNode or null))
             {
                 continue;
             }
             
-            results.Add(node.Evaluate());
+            object? result = node.Evaluate();
+            
+            if (result is not null)
+            {
+                results.Add(result);
+            }
         }
         return results;
     }

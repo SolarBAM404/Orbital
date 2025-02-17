@@ -1,3 +1,4 @@
+using OrbitalCore.Exceptions;
 using OrbitalCore.Lex;
 using OrbitalCore.Parse.Nodes.Abstract;
 using OrbitalCore.Parse.Nodes.BasicTypes;
@@ -10,27 +11,62 @@ public class MathematicalBinaryExpressionNode(AbstractTreeNode expression1, Abst
     
     public override object? Evaluate()
     {
-        if (Expression1 is VariableNode variableNode1)
-        {
-            Expression1 = (AbstractTreeNode)variableNode1.Evaluate();
-        }
+
+        double expression1Value;
+        double expression2Value;
         
-        if (Expression2 is VariableNode variableNode2)
+        switch (Expression1)
         {
-            Expression2 = (AbstractTreeNode)variableNode2.Evaluate();
+            case VariableNode variableNode1:
+                expression1Value = (double)variableNode1.Evaluate();
+                break;
+            case NumberNode numberNode1:
+                expression1Value = (double)numberNode1.Value;
+                break;
+            default:
+            {
+                object expression1 = Expression1.Evaluate();
+                try { expression1Value = (double)expression1; }
+                catch { throw new Exception("Invalid expression"); }
+
+                break;
+            }
         }
-        
-        if (Expression1 is not (NumberNode or MathematicalBinaryExpressionNode) || Expression2 is not (NumberNode or MathematicalBinaryExpressionNode))
+
+        switch (Expression2)
         {
-            throw new Exception($"Both expressions must be numbers or expression nodes: expression1: {Expression1.GetType().Name}, expression2: {Expression2.GetType().Name}");
+            case VariableNode variableNode2:
+                expression2Value = (double)variableNode2.Evaluate();
+                break;
+            case NumberNode numberNode2:
+                expression2Value = (double)numberNode2.Value;
+                break;
+            default:
+            {
+                object expression2 = Expression2.Evaluate();
+                try
+                {
+                    expression2Value = (double)expression2;
+                }
+                catch (InvalidCastException castException)
+                {
+                    throw new CastErrorException(typeof(double), expression2.GetType()); 
+                }
+                catch
+                {
+                    throw new Exception("Invalid expression");
+                }
+
+                break;
+            }
         }
 
         return Operator switch
         {
-            TokenTypes.Gain => (double)Expression1.Evaluate() + (double)Expression2.Evaluate(),
-            TokenTypes.Drain => (double)Expression1.Evaluate() - (double)Expression2.Evaluate(),
-            TokenTypes.Amplify => (double)Expression1.Evaluate() * (double)Expression2.Evaluate(),
-            TokenTypes.Disperse => (double)Expression1.Evaluate() / (double)Expression2.Evaluate(),
+            TokenTypes.Gain => expression1Value + expression2Value,
+            TokenTypes.Drain => expression1Value - expression2Value,
+            TokenTypes.Amplify => expression1Value * expression2Value,
+            TokenTypes.Disperse => expression1Value / expression2Value,
             _ => throw new Exception("Invalid operator")
         };
     }

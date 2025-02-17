@@ -4,4 +4,5 @@ public abstract class AbstractFunctionNode(string name, List<AbstractTreeNode> a
 {
     public string Name { get; } = name;
     public List<AbstractTreeNode> Arguments { get; } = arguments;
+    
 }

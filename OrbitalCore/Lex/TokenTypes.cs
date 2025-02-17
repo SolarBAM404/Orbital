@@ -18,6 +18,12 @@ public enum TokenTypes
     RightBrace,
     SemiColon,
     Comma,
+    Probe, // if
+    Scan, // else
+    Orbit, // while
+    Land, // return
+    Signal, // true
+    Void, // false
     
     // Comparison Operators
     Align, // ==

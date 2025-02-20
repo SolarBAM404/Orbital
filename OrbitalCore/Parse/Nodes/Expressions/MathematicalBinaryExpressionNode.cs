@@ -18,7 +18,15 @@ public class MathematicalBinaryExpressionNode(AbstractTreeNode expression1, Abst
         switch (Expression1)
         {
             case VariableNode variableNode1:
-                expression1Value = (double)variableNode1.Evaluate();
+                object? variable1Obj = variableNode1.Evaluate();
+                if (variable1Obj is double variable1)
+                {
+                    expression1Value = variable1;
+                }
+                else
+                {
+                    throw new CastErrorException(typeof(double), variable1Obj.GetType());
+                }
                 break;
             case NumberNode numberNode1:
                 expression1Value = (double)numberNode1.Value;
@@ -36,7 +44,15 @@ public class MathematicalBinaryExpressionNode(AbstractTreeNode expression1, Abst
         switch (Expression2)
         {
             case VariableNode variableNode2:
-                expression2Value = (double)variableNode2.Evaluate();
+                object? variable2Obj = variableNode2.Evaluate();
+                if (variable2Obj is double variable2)
+                {
+                    expression2Value = variable2;
+                }
+                else
+                {
+                    throw new CastErrorException(typeof(double), variable2Obj.GetType());
+                }
                 break;
             case NumberNode numberNode2:
                 expression2Value = (double)numberNode2.Value;

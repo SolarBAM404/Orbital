@@ -15,26 +15,29 @@ public class Scope
     
         public object? GetVariable(string name)
         {
-            if (_variables.TryGetValue(name, out var value))
+            if (!_variables.ContainsKey(name))
             {
-                return value;
+                return Parent?.GetVariable(name) ?? null;
             }
-            if (Parent == null)
-            {
-                return null;
-            }
-            return Parent?.GetVariable(name);
+            
+            return _variables[name] ?? Parent?.GetVariable(name) ?? null;
         }
-    
+
         public void SetVariable(string name, object? value)
         {
+            if (Parent != null && Parent.Exists(name))
+            {
+                Parent.SetVariable(name, value);
+            }
+            
             if (_variables.ContainsKey(name))
             {
                 _variables[name] = value;
             }
-            else
-            {
-                Parent?.SetVariable(name, value);
-            }
+        }
+        
+        public bool Exists(string name)
+        {
+            return GetVariable(name) != null;
         }
     }

@@ -21,7 +21,7 @@ public class Parser(List<Token> tokens)
     private int _position = 0;
     private Queue<AbstractTreeNode> _output = new();
 
-    private Scope currentScope { get; set; } = new();
+    public static Scope CurrentScope { get; set; } = new();
     
     public static Dictionary<string, VariableNode> GlobalVariables { get; set; }= new();
 
@@ -72,15 +72,8 @@ public class Parser(List<Token> tokens)
                 
                 Advance();
                 AbstractTreeNode right = ParseExpression(tokenPrecedence + 1);
-
-                if (!variableNode.CheckIfVariableExists())
-                {
-                    variableNode.Value = right;
-                    variableNode.Scope.DefineVariable(variableNode.Name, right);
-                    return EmptyNode.Instance;
-                }
-
-                return new AssignmentNode(variableNode, right, currentScope);
+                
+                return new AssignmentNode(variableNode.Name, right, CurrentScope);
             }
             else if (IsComparisonOperator(operatorToken.TokenType))
             {
@@ -101,7 +94,7 @@ public class Parser(List<Token> tokens)
                 
                 AbstractTreeNode? leftNode = left;
                 
-                if (left is StringNode || right is StringNode || left.Evaluate() is StringNode || right.Evaluate() is StringNode || leftNode.Evaluate() is string || right.Evaluate() is string)
+                if (left is StringNode || right is StringNode)
                 {
                     if (operatorToken.TokenType == TokenTypes.Gain)
                     {
@@ -212,13 +205,15 @@ public class Parser(List<Token> tokens)
                 {
                     return ParseFunction();
                 }
-                if (GlobalVariables.TryGetValue(current.Value, out VariableNode? existingVariable))
+                
+                VariableNode variableNode = new (current.Value, CurrentScope);
+                if (CurrentScope.Exists(current.Value))
                 {
-                    return existingVariable;
+                    return variableNode;
                 }
-                VariableNode variableNode = new (current.Value, currentScope);
-                GlobalVariables.Add(current.Value, variableNode);
-                _output.Enqueue(variableNode);
+                
+                CurrentScope.DefineVariable(current.Value, null);
+                // _output.Enqueue(variableNode);
                 return variableNode;
             case TokenTypes.LeftParenthesis:
                 AbstractTreeNode expression = ParseExpression();
@@ -329,7 +324,8 @@ public class Parser(List<Token> tokens)
             throw new Exception("Expected '{'");
         }
         Queue<AbstractTreeNode> ifBody = new();
-        currentScope = new(currentScope);
+        Scope parentScope = CurrentScope;
+        CurrentScope = new(parentScope);
         Advance(); // Consume the '{' token
         while (CurrentToken().TokenType != TokenTypes.RightBrace)
         {
@@ -337,12 +333,12 @@ public class Parser(List<Token> tokens)
             ifBody.Enqueue(node);
         }
         Advance(); // Consume the '}' token
+        CurrentScope = parentScope;
         
         if (CurrentToken().TokenType != TokenTypes.Scan)
         {
             return new IfThenElseStatement(condition, new BodyNode(ifBody));
         }
-        currentScope = currentScope.Parent!;
         
         Advance(); // Consume the 'scan' token
         
@@ -352,7 +348,7 @@ public class Parser(List<Token> tokens)
         }
         
         Queue<AbstractTreeNode> elseBody = new();
-        currentScope = new(currentScope);
+        CurrentScope = new(parentScope);
         Advance(); // Consume the '{' token
         while (CurrentToken().TokenType != TokenTypes.RightBrace)
         {
@@ -360,7 +356,7 @@ public class Parser(List<Token> tokens)
             elseBody.Enqueue(node);
         }
         Advance(); // Consume the '}' token
-        currentScope = currentScope.Parent!;
+        CurrentScope = parentScope;
         
         return new IfThenElseStatement(condition, new BodyNode(ifBody), new BodyNode(elseBody));
     }
@@ -386,7 +382,8 @@ public class Parser(List<Token> tokens)
             throw new Exception("Expected '{'");
         }
         Queue<AbstractTreeNode> body = new();
-        currentScope = new(currentScope);
+        Scope parentScope = CurrentScope;
+        CurrentScope = new(parentScope);
         Advance(); // Consume the '{' token
         while (CurrentToken().TokenType != TokenTypes.RightBrace)
         {
@@ -394,7 +391,7 @@ public class Parser(List<Token> tokens)
             body.Enqueue(node);
         }
         Advance(); // Consume the '}' token
-        currentScope = currentScope.Parent!;
+        CurrentScope = parentScope;
         
         return new WhileStatementNode(condition, new BodyNode(body));
     }

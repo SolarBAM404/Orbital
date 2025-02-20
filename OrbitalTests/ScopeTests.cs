@@ -62,4 +62,15 @@ public class ScopeTests
 
         Assert.That(scope.GetVariable("x"), Is.EqualTo(100));
     }
+    
+    [Test]
+    public void CheckIfVariableExistsOutsideScope()
+    {
+        Scope parentScope = new Scope();
+        Scope childScope = new Scope(parentScope);
+        
+        childScope.DefineVariable("x", 42);
+        Assert.That(parentScope.Exists("x"), Is.False);
+        Assert.That(childScope.Exists("x"), Is.True);
+    } 
 }

@@ -1,0 +1,14 @@
+x = 10; 
+a = 2;
+probe(x align 10) {
+    uplink("Entered probe");
+    y = 13;
+};
+uplink(a);
+uplink(y);
+uplink(x);
+probe(x align 10) {
+    uplink("Entered probe");
+    z = 13;
+    uplink(y);
+};

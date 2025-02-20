@@ -24,7 +24,7 @@ public class FunctionalTests
         List<object?> results = Evaluator.EvaluateAndExecute(code);
         Assert.Multiple(() =>
         {
-            Assert.That(Parser.GlobalVariables["z"].Evaluate(), Is.EqualTo(3.0d));
+            Assert.That(Parser.CurrentScope.GetVariable("z"), Is.EqualTo(3.0d));
         });
     }
 
@@ -55,7 +55,7 @@ public class FunctionalTests
         List<object?> results = Evaluator.EvaluateAndExecute(code);
         Assert.Multiple(() =>
         {
-            Assert.That(Parser.GlobalVariables["x"].Evaluate(), Is.EqualTo(reply));
+            Assert.That(Parser.CurrentScope.GetVariable("x") , Is.EqualTo(reply));
         });
     }
     

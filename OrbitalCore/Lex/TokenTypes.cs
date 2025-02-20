@@ -7,6 +7,9 @@ public enum TokenTypes
     Number,
     Boolean,
     
+    Signal, // true
+    Void, // false
+    
     // Misc
     SingleLineComment,
     MultiLineComment,
@@ -21,9 +24,8 @@ public enum TokenTypes
     Probe, // if
     Scan, // else
     Orbit, // while
+    Nova, //  define
     Land, // return
-    Signal, // true
-    Void, // false
     
     // Comparison Operators
     Align, // ==

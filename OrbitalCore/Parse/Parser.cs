@@ -10,4 +10,9 @@ public class Parser
     {
         _tokens = tokens;
     }
+
+    public List<IOrbitalElement> Parse()
+    {
+        return new List<IOrbitalElement>(); // Not implemented yet
+    }
 }

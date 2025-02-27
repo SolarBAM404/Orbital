@@ -2,8 +2,8 @@ using OrbitalCore.Parse.Elements;
 
 namespace OrbitalCore.Parse.Visitors;
 
-public interface IOrbitalVisitor<T>
+public interface IOrbitalVisitor
 {
-    T VisitLogical(LogicalElement<T> element);
-    T VisitLiteral(LiteralElement<T> element);
+    object? VisitLogical(LogicalElement element);
+    object? VisitLiteral(LiteralElement element);
 }

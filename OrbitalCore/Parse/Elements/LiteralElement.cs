@@ -2,11 +2,11 @@ using OrbitalCore.Parse.Visitors;
 
 namespace OrbitalCore.Parse.Elements;
 
-public class LiteralElement<T>(object value) : IOrbitalElement<T>
+public class LiteralElement(object value) : IOrbitalElement
 {
     public object Value { get; }
     
-    public T Accept(IOrbitalVisitor<T> visitor)
+    public object? Accept(IOrbitalVisitor visitor)
     {
         return visitor.VisitLiteral(this);
     }

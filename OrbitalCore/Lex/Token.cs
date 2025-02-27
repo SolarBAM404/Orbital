@@ -1,5 +1,3 @@
-using OrbitalCore.Objects;
-
 namespace OrbitalCore.Lex;
 
 public class Token(TokenTypes tokenType, string? value, object? literal, int line)

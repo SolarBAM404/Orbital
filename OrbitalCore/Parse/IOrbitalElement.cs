@@ -2,7 +2,7 @@ using OrbitalCore.Parse.Visitors;
 
 namespace OrbitalCore.Parse;
 
-public interface IOrbitalElement<T>
+public interface IOrbitalElement
 {
-    T Accept(IOrbitalVisitor<T> visitor);
+    object? Accept(IOrbitalVisitor visitor);
 }

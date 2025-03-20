@@ -1,5 +1,3 @@
-using System.Linq.Expressions;
-
 namespace OrbitalCore.Lex;
 
 public class Scanner

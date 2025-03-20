@@ -5,21 +5,20 @@ namespace OrbitalCore;
 
 public class Orbital
 {
-    public static void Run(string code)
+    public static void Run(string source)
     {
-        // Lexical Analysis
-        Scanner lexer = new Scanner(code);
-        List<Token> tokens = lexer.ScanTokens();
+        Scanner scanner = new Scanner(source);
+        List<Token> tokens = scanner.ScanTokens();
 
-        // Syntactic Analysis
         Parser parser = new Parser(tokens);
-        List<IOrbitalElement<object>> elements = parser.Parse();
+        List<IOrbitalElement> orbitalElements = parser.Parse();
 
-        // Semantic Analysis
         Interpreter interpreter = new Interpreter();
         foreach (IOrbitalElement<object> element in elements)
         {
             element.Accept(interpreter);
         }
+        interpreter.Interpret(orbitalElements);
+
     }
 }

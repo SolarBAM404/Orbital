@@ -1,5 +1,4 @@
 using OrbitalCore.Lex;
-using OrbitalCore.Parse.Elements;
 
 namespace OrbitalCore.Parse;
 
@@ -11,15 +10,9 @@ public class Parser
     {
         _tokens = tokens;
     }
-    
-    public List<IOrbitalElement<object>> Parse()
+
+    public List<IOrbitalElement> Parse()
     {
-        List<IOrbitalElement<object>> elements = new();
-        return elements;
-    }
-    
-    private IOrbitalElement<object> ParseElement()
-    {
-        return new LiteralElement<object>(null);
+        return new List<IOrbitalElement>(); // Not implemented yet
     }
 }

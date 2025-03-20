@@ -124,3 +124,7 @@ Newline
 Whitespace
     : [ \t]+ -> channel(HIDDEN)
     ;
+
+Keywords
+    : Amplify
+    |

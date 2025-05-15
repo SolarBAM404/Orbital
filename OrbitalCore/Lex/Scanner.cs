@@ -11,10 +11,26 @@ public class Scanner
             { "signal", TokenTypes.Signal },
             { "void", TokenTypes.Void },
             { "probe", TokenTypes.Probe },
+            { "probescan", TokenTypes.ProbeScan },
             { "scan", TokenTypes.Scan },
             { "orbit", TokenTypes.Orbit },
             { "nova", TokenTypes.Nova },
             { "land", TokenTypes.Land },
+            { "uplink", TokenTypes.Uplink },
+            { "negate", TokenTypes.Negate},
+            { "gain", TokenTypes.Gain },
+            { "drain", TokenTypes.Drain },
+            { "amplify", TokenTypes.Amplify },
+            { "disperse", TokenTypes.Disperse },
+            { "align", TokenTypes.Align },
+            { "disrupt", TokenTypes.Disrupt },
+            { "above", TokenTypes.Above },
+            { "below", TokenTypes.Below },
+            { "safe", TokenTypes.Safe },
+            { "unsafe", TokenTypes.Unsafe },
+            { "stable", TokenTypes.Stable },
+            { "path", TokenTypes.Path },
+            { "null", TokenTypes.Null },
         };
     }
     
@@ -29,9 +45,9 @@ public class Scanner
         _source = source;
     }
     
-    public List<Token> ScanTokens()
+    public List<Token?> ScanTokens()
     {
-        List<Token> tokens = new List<Token>();
+        List<Token?> tokens = new List<Token?>();
         
         while (!IsAtEnd())
         {
@@ -43,7 +59,7 @@ public class Scanner
         return tokens;
     }
     
-    private void ScanToken(List<Token> tokens)
+    private void ScanToken(List<Token?> tokens)
     {
         char character = Advance();
         switch (character)
@@ -98,7 +114,7 @@ public class Scanner
             
             default:
 
-                if (IsDigit(character))
+                if (IsDigit(character) || character == '-')
                 {
                     ScanNumber(tokens);
                 }
@@ -116,7 +132,7 @@ public class Scanner
         }
     }
     
-    private void ScanIdentifier(List<Token> tokens)
+    private void ScanIdentifier(List<Token?> tokens)
     {
         while (IsAlpha(Peek()) || IsDigit(Peek()))
         {
@@ -134,7 +150,7 @@ public class Scanner
         AddToken(type, null, tokens);
     }
 
-    private void ScanNumber(List<Token> tokens)
+    private void ScanNumber(List<Token?> tokens)
     {
         while (IsDigit(Peek()))
         {
@@ -156,7 +172,7 @@ public class Scanner
         AddToken(TokenTypes.Number, number, tokens);
     }
     
-    public void ScanString(List<Token> tokens)
+    public void ScanString(List<Token?> tokens)
     {
         MatchUntil('"');
         
@@ -171,7 +187,7 @@ public class Scanner
         AddToken(TokenTypes.String, value, tokens);
     }
     
-    private void AddToken(TokenTypes type, object? literal, List<Token> tokens)
+    private void AddToken(TokenTypes type, object? literal, List<Token?> tokens)
     {
         string text = _source.Substring(start, current - start);
         tokens.Add(new Token(type, text, literal, line));

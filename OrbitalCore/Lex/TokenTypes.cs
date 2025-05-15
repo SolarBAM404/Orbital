@@ -22,10 +22,15 @@ public enum TokenTypes
     SemiColon,
     Comma,
     Probe, // if
+    ProbeScan, // else if
     Scan, // else
     Orbit, // while
     Nova, //  define
     Land, // return
+    Null,
+    
+    Uplink, // print
+    Negate, // !
     
     // Comparison Operators
     Align, // ==

@@ -6,4 +6,18 @@ public interface IOrbitalVisitor
 {
     object? VisitLogical(LogicalElement element);
     object? VisitLiteral(LiteralElement element);
+    
+    void VisitUplink(UplinkElement element);
+    
+    void VisitExpressionBlock(ExpressionBlockElement element);
+    object? VisitBlock(BlockElement element);
+    
+    void VisitEof();
+    object? VisitUnary(UnaryElement unaryElement);
+    object? VisitGroup(GroupElement groupElement);
+    object? VisitVariable(VariableElement variableElement);
+    void VisitAssignment(AssignElement variableStatementElement);
+    object? VisitNegate(NegateElement negateElement);
+    object? VisitProbe(ProbeElement probeElement);
+    object? VisitOrbit(OrbitElement orbitElement);
 }

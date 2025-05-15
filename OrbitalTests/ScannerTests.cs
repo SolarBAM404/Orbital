@@ -10,7 +10,7 @@ public class ScannerTests
     {
         const string source = "void";
         Scanner scanner = new Scanner(source);
-        List<Token> tokens = scanner.ScanTokens();
+        List<Token?> tokens = scanner.ScanTokens();
         Assert.Multiple(() =>
         {
             Assert.That(tokens, Has.Count.EqualTo(2));
@@ -25,7 +25,7 @@ public class ScannerTests
     {
         const string source = "x = 5; \n y = 10;";
         Scanner scanner = new Scanner(source);
-        List<Token> tokens = scanner.ScanTokens();
+        List<Token?> tokens = scanner.ScanTokens();
         Assert.Multiple(() =>
         {
             Assert.That(tokens, Has.Count.EqualTo(9));
@@ -48,7 +48,7 @@ public class ScannerTests
     {
         const string source = "\"Hello, World!\"";
         Scanner scanner = new Scanner(source);
-        List<Token> tokens = scanner.ScanTokens();
+        List<Token?> tokens = scanner.ScanTokens();
         Assert.Multiple(() =>
         {
             Assert.That(tokens, Has.Count.EqualTo(2));

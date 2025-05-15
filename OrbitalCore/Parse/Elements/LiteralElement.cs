@@ -2,9 +2,9 @@ using OrbitalCore.Parse.Visitors;
 
 namespace OrbitalCore.Parse.Elements;
 
-public class LiteralElement(object value) : IOrbitalElement
+public class LiteralElement(object? value) : IOrbitalElement
 {
-    public object Value { get; }
+    public object? Value { get; } = value;
     
     public object? Accept(IOrbitalVisitor visitor)
     {

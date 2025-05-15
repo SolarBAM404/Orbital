@@ -13,7 +13,15 @@ if (args.Length == 0)
         {
             break;
         }
-        // List<object?> results = Evaluator.EvaluateAndExecute(input);
+
+        try
+        {
+            Orbital.Run(input);
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine(ex.Message);
+        }
     }
 
     return;
@@ -23,4 +31,4 @@ if (args.Length == 0)
 
 string path = args[0];
 string code = File.ReadAllText(path);
-// List<object?> fileResults = Evaluator.EvaluateAndExecute(code);
+Orbital.Run(code);

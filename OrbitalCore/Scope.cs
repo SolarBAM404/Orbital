@@ -1,3 +1,4 @@
+using OrbitalCore.Explosions;
 using OrbitalCore.Parse.Elements;
 
 namespace OrbitalCore;
@@ -48,7 +49,7 @@ public class Scope
                     return kvp.Value;
                 }
             }
-            return Parent?[variable];
+            return Parent?[variable] ?? throw new InvalidVariableExplosion(variable, $"Variable {variable.Name.Value} not found in scope.");
         }
     }
 }

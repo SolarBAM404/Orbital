@@ -1,6 +1,6 @@
 # Orbital Language
 
-Orbital is a simple, C#-based interpreted language designed for learning and experimentation. It features variables, arithmetic, control flow (if/else, while), and output.
+Orbital is a basic custom-built language using C# as the language on which it runs.
 
 ## Features
 
@@ -47,3 +47,7 @@ Replace `<filePath>` with the path to your `.orbital` file.
 
 Example Files
 See the `ExampleCode/` directory for more sample programs.
+
+<hr></hr>
+
+By Solar M.

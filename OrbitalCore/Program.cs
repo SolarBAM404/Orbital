@@ -23,6 +23,19 @@ if (args.Length == 0)
 // if path is provided, read the file and execute the code
 
 string path = args[0];
+
+if (!File.Exists(path))
+{
+    Console.WriteLine($"File not found: {path}");
+    return;
+}
+
+if (Path.GetExtension(path) != ".orbital")
+{
+    Console.WriteLine($"Invalid file extension: {path}");
+    return;
+}
+
 string code = File.ReadAllText(path);
 Run(code);
 

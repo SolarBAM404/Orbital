@@ -14,14 +14,7 @@ if (args.Length == 0)
             break;
         }
 
-        try
-        {
-            Orbital.Run(input);
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine(ex.Message);
-        }
+        Run(input);
     }
 
     return;
@@ -31,4 +24,16 @@ if (args.Length == 0)
 
 string path = args[0];
 string code = File.ReadAllText(path);
-Orbital.Run(code);
+Run(code);
+
+void Run(string code)
+{
+    try
+    {
+        Orbital.Run(code);
+    }
+    catch (Exception ex)
+    {
+        Console.WriteLine($"{ex.GetType()} - {ex.Message}");
+    }
+}

@@ -70,5 +70,15 @@ public class MathsTests
         Orbital.Run(code);
         Assert.That(GetOutput(), Is.EqualTo("3.4722222222222223"));
     }
+    
+    [Test]
+    public void Maths_ComplexExpression_ReturnsCorrectValue()
+    {
+        // Evaluate the following code:
+        // 1 + 2 * 3 - 4 / 5
+        string code = "uplink(1 gain 2 amplify 3 drain 4 disperse 5);";
+        Orbital.Run(code);
+        Assert.That(GetOutput(), Is.EqualTo("6.2"));
+    }
 
 }

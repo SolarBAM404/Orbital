@@ -1,4 +1,5 @@
 using OrbitalCore;
+using OrbitalCore.Explosions;
 
 namespace OrbitalTests;
 [TestFixture]

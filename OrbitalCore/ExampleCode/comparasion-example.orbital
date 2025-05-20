@@ -35,7 +35,7 @@ uplink(negate(signal disrupt void));
 uplink("");
 
 uplink("Outputting true align true (true == true)");
-uplink(true align true);
+uplink(signal align signal);
 uplink("");
 
 uplink("Outputting signal disrupt void (true != false)");

@@ -7,6 +7,9 @@ public enum TokenTypes
     Number,
     Boolean,
     
+    Signal, // true
+    Void, // false
+    
     // Misc
     SingleLineComment,
     MultiLineComment,
@@ -19,11 +22,15 @@ public enum TokenTypes
     SemiColon,
     Comma,
     Probe, // if
+    ProbeScan, // else if
     Scan, // else
     Orbit, // while
+    Nova, //  define
     Land, // return
-    Signal, // true
-    Void, // false
+    Null,
+    
+    Uplink, // print
+    Negate, // !
     
     // Comparison Operators
     Align, // ==

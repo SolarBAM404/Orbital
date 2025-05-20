@@ -13,7 +13,8 @@ if (args.Length == 0)
         {
             break;
         }
-        List<object?> results = Evaluator.EvaluateAndExecute(input);
+
+        Run(input);
     }
 
     return;
@@ -22,5 +23,30 @@ if (args.Length == 0)
 // if path is provided, read the file and execute the code
 
 string path = args[0];
+
+if (!File.Exists(path))
+{
+    Console.WriteLine($"File not found: {path}");
+    return;
+}
+
+if (Path.GetExtension(path) != ".orbital")
+{
+    Console.WriteLine($"Invalid file extension: {path}");
+    return;
+}
+
 string code = File.ReadAllText(path);
-List<object?> fileResults = Evaluator.EvaluateAndExecute(code);
+Run(code);
+
+void Run(string code)
+{
+    try
+    {
+        Orbital.Run(code);
+    }
+    catch (Exception ex)
+    {
+        Console.WriteLine($"{ex.GetType()} - {ex.Message}");
+    }
+}

@@ -1,0 +1,26 @@
+uplink("Outputting 'Hello'");
+uplink("Hello");
+uplink("");
+
+uplink("Outputting 'World!'");
+uplink("World!");
+uplink("");
+
+uplink("Outputting 'Hello' + 'World!'");
+uplink("Hello" gain " World!");
+uplink("");
+
+uplink("Outputting 'abc' + 'def'");
+uplink("abc" gain "def");
+uplink("");
+
+uplink("Outputting 'abc' + 123");
+uplink("abc" gain 123);
+uplink("");
+
+uplink("Outputting 'abc' + 123");
+uplink("abc" gain signal);
+uplink("");
+
+uplink("Outputting 'abc' - 'c' (should error)");
+uplink("abc" drain "c");

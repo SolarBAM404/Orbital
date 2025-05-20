@@ -1,0 +1,53 @@
+uplink("Basic If: x = 1; probe(x align 1) { x = x gain 1; }; uplink(x);");
+x = 1;
+probe(x align 1) { x = x gain 1; };
+uplink(x);
+uplink("");
+
+uplink("If-Else: x = 2; probe(x align 2) { x = x gain 1; } scan { x = x drain 1; }; uplink(x);");
+x = 2;
+probe(x align 2) { x = x gain 1; } scan { x = x drain 1; };
+uplink(x);
+uplink("");
+
+uplink("If-Else: x = 1; probe(x align 2) { x = x gain 1; } scan { x = x drain 1; }; uplink(x);");
+x = 1;
+probe(x align 2) { x = x gain 1; } scan { x = x drain 1; };
+uplink(x);
+uplink("");
+
+uplink("Nested If: x = 1; probe(x align 1) { probe(x align 1) { x = x gain 1; } scan { x = x drain 1; }; }; uplink(x);");
+x = 1;
+probe(x align 1) { probe(x align 1) { x = x gain 1; } scan { x = x drain 1; }; };
+uplink(x);
+uplink("");
+
+uplink("Nested If-Else: x = 1; probe(x below 2) { probe(x below 1) { x = x gain 1; } scan { x = x drain 1; }; }; uplink(x);");
+x = 1;
+probe(x below 2) { probe(x below 1) { x = x gain 1; } scan { x = x drain 1; }; };
+uplink(x);
+uplink("");
+
+uplink("Nested If (Scan Side): x = 1; probe(x align 2) { probe(x align 1) { x = x gain 1; } } scan { x = x drain 1; probe ( x align 1) { x = x gain 2; } scan { x = x drain 1; }; }; uplink(x);");
+x = 1;
+probe(x align 2) { probe(x align 1) { x = x gain 1; } } scan { x = x drain 1; probe ( x align 1) { x = x gain 2; } scan { x = x drain 1; }; };
+uplink(x);
+uplink("");
+
+uplink("While: x = 1; orbit (x below 5) { x = x gain 1; }; uplink(x);");
+x = 1;
+orbit (x below 5) { x = x gain 1; };
+uplink(x);
+uplink("");
+
+uplink("Nested While: x = 1; orbit (x below 5) { orbit (x below 3) { x = x gain 1; }; x = x gain 2; }; uplink(x);");
+x = 1;
+orbit (x below 5) { orbit (x below 3) { x = x gain 1; }; x = x gain 2; };
+uplink(x);
+uplink("");
+
+uplink("While with If: x = 1; orbit (x below 5) { probe(x align 3) { x = x gain 2; } scan { x = x gain 1; }; }; uplink(x);");
+x = 1;
+orbit (x below 5) { probe(x align 3) { x = x gain 2; } scan { x = x gain 1; }; };
+uplink(x);
+uplink("");

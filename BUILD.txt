@@ -1,0 +1,4 @@
+To build from source make sure to have DOTNET 9 SDK installed and run `dotnet build -c Release` in the OrbitalCore folder
+This will provide you with a exe file at `bin/Release/net9.0/` called OrbitalCore.exe
+From this you can create a .orbital file and then in the console you can run `<path-To-OrbitalCore-Exe-File> -f  <.orbital-file-path>`
+You can also just run the OrbitalCore exe file in a terminal and it will run a line by line interupter, though this is a limited option.

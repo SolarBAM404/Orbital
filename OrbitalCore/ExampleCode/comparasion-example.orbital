@@ -1,0 +1,67 @@
+uplink("Outputting 1 align 1 (1 == 1)");
+uplink(1 align 1);
+uplink("");
+
+uplink("Outputting 1 disrupt 2 (1 != 2)");
+uplink(1 disrupt 2);
+uplink("");
+
+uplink("Outputting 2 above 1 (2 > 1)");
+uplink(2 above 1);
+uplink("");
+
+uplink("Outputting 1 below 2 (1 < 2)");
+uplink(1 below 2);
+uplink("");
+
+uplink("Outputting 2 safe 1 (2 >= 1)");
+uplink(2 safe 1);
+uplink("");
+
+uplink("Outputting 1 unsafe 2 (1 <= 2)");
+uplink(1 unsafe 2);
+uplink("");
+
+uplink("Outputting negate(signal) (!true)");
+uplink(negate(signal));
+uplink("");
+
+uplink("Outputting negate(signal) align void (!true == false)");
+uplink(negate(signal) align void);
+uplink("");
+
+uplink("Outputting negate(signal disrupt void) (!(true != false))");
+uplink(negate(signal disrupt void));
+uplink("");
+
+uplink("Outputting true align true (true == true)");
+uplink(true align true);
+uplink("");
+
+uplink("Outputting signal disrupt void (true != false)");
+uplink(signal disrupt void);
+uplink("");
+
+uplink("Outputting 5 below 10 (5 < 10)");
+uplink(5 below 10);
+uplink("");
+
+uplink("Outputting negate(5 drain 4 above 3 amplify 2 align negate(void)) (!(5 - 4 > 3 * 2 == !false))");
+uplink(negate(5 drain 4 above 3 amplify 2 align negate(void)));
+uplink("");
+
+uplink("Outputting signal stable signal (true and true)");
+uplink(signal stable signal);
+uplink("");
+
+uplink("Outputting void path signal (false or true)");
+uplink(void path signal);
+uplink("");
+
+uplink("Outputting (0 below 1) path void ((0 < 1) or false)");
+uplink((0 below 1) path void);
+uplink("");
+
+uplink("Outputting void path void (false or false)");
+uplink(void path void);
+uplink("");

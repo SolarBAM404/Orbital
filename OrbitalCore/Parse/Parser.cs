@@ -1,452 +1,395 @@
 using OrbitalCore.Lex;
-using OrbitalCore.Parse.Nodes;
-using OrbitalCore.Parse.Nodes.Abstract;
-using OrbitalCore.Parse.Nodes.BasicTypes;
-using OrbitalCore.Parse.Nodes.BuiltInFunctions;
-using OrbitalCore.Parse.Nodes.Expressions;
-using OrbitalCore.Parse.Nodes.Statements;
+using OrbitalCore.Parse.Elements;
 
 namespace OrbitalCore.Parse;
 
-public class Parser(List<Token> tokens)
+public class Parser
 {
-    // Entry point for parsing a list of tokens into a queue of abstract syntax tree nodes
-    public static Queue<AbstractTreeNode> Parse(List<Token> tokens)
-    {
-        Parser parser = new Parser(tokens);
-        return parser.Parse();
-    }
-
-    private List<Token> _tokens = tokens;
-    private int _position = 0;
-    private Queue<AbstractTreeNode> _output = new();
-
-    public static Scope CurrentScope { get; set; } = new();
+    private List<Token?> _tokens;
+    private int _current = 0;
     
-    public static Dictionary<string, VariableNode> GlobalVariables { get; set; }= new();
-
-    // Main parsing loop that processes tokens until the end is reached
-    public Queue<AbstractTreeNode> Parse()
-    {     
-        while (!IsEnd())
-        {
-            AbstractTreeNode node = ParseExpression();
-            if (node is not EmptyNode)
-            {
-                _output.Enqueue(node);
-            }
-        }
-        
-        return _output;
+    public Parser(List<Token?> tokens)
+    {
+        _tokens = tokens;
     }
 
-    // Parses an expression based on operator precedence
-    private AbstractTreeNode ParseExpression(int precedence = 0)
+    public List<IOrbitalElement> Parse()
     {
-        AbstractTreeNode left = ParsePrimary();
+        List<IOrbitalElement> orbitalElements = new();
         
-        if (left is OperatorNode operatorNode)
+        while (!IsAtEnd())
         {
-            if (operatorNode.Value is TokenTypes.Probe or TokenTypes.Orbit)
+            orbitalElements.Add(ParseElement());
+        }
+        return orbitalElements;
+    }
+    
+    private IOrbitalElement ParseElement()
+    {
+        try
+        {
+            return ParseStatement();
+        }
+        catch (Exception e)
+        {
+            if (Match(TokenTypes.SemiColon))
             {
-                return ParseStatement(operatorNode);
+                return new EoFElement();
             }
+            throw;
+        }
+    }
+
+    private IOrbitalElement ParseStatement()
+    {
+        if (Match(TokenTypes.Uplink))
+        {
+            return ParseUplink();
+        }
+        if (Match(TokenTypes.Negate))
+        {
+            return ParseNegate();
+        }
+        if (Match(TokenTypes.Probe))
+        {
+            return ParseIfStatement();
+        }
+        if (Match(TokenTypes.Scan))
+        {
+            return ParseWhileStatement();
         }
 
-        while (true)
+        if (Match(TokenTypes.Orbit))
         {
-            Token operatorToken = CurrentToken();
-            int tokenPrecedence = Precedence(operatorToken);
+            return ParseWhileStatement();
+        }
+    
+        return ParseAssignment();
+    }
 
-            if (tokenPrecedence < precedence)
+    private IOrbitalElement ParseNegate()
+    {
+        IOrbitalElement expression = ParseElement();
+        return new NegateElement(expression);
+    }
+
+    private IOrbitalElement ParseUplink()
+    {
+        IOrbitalElement expression = ParseElement();
+        Consume(TokenTypes.SemiColon, $"Expected ';' after expression. Line: {PeekPrevious().Line}");
+        return new UplinkElement(expression);
+    }
+    
+    private IOrbitalElement ParseIfStatement()
+    {
+        Consume(TokenTypes.LeftParenthesis, "Expected '(' after 'if'.");
+        IOrbitalElement ifCondition = ParseElement();
+        Consume(TokenTypes.RightParenthesis, "Expected ')' after condition.");
+
+        IOrbitalElement ifThenCondition = Match(TokenTypes.LeftBrace) ? ParseBlock() : ParseStatement();
+
+        List<IOrbitalElement> elseIfConditions = new();
+        List<IOrbitalElement> elseIfThenConditions = new();
+
+        while (Match(TokenTypes.ProbeScan))
+        {
+            Consume(TokenTypes.LeftParenthesis, "Expected '(' after 'else if'.");
+            elseIfConditions.Add(ParseElement());
+            Consume(TokenTypes.RightParenthesis, "Expected ')' after condition.");
+            elseIfThenConditions.Add(ParseStatement());
+        }
+
+        IOrbitalElement? elseCondition = null;
+        IOrbitalElement? elseThenCondition = null;
+
+        if (Match(TokenTypes.Scan))
+        {
+            elseCondition = new LiteralElement(true); // Represents the "else" condition.
+            elseThenCondition = ParseStatement();
+        }
+
+        return new ProbeElement(
+            ifCondition,
+            ifCondition,
+            elseIfConditions,
+            elseCondition,
+            ifThenCondition,
+            elseIfThenConditions,
+            elseThenCondition
+        );
+    }
+
+    
+    private IOrbitalElement ParseWhileStatement()
+    {
+        Consume(TokenTypes.LeftParenthesis, "Expected '(' after 'while'.");
+        IOrbitalElement condition = ParseElement();
+        Consume(TokenTypes.RightParenthesis, "Expected ')' after condition.");
+    
+        IOrbitalElement body = ParseStatement();
+    
+        return new OrbitElement(condition, body);
+    }
+
+    private IOrbitalElement ParseAssignment()
+    {
+        IOrbitalElement element = ParseOrStatement();
+
+        if (Match(TokenTypes.Assignment))
+        {
+            Token? equals = PeekPrevious();
+            IOrbitalElement value = ParseAssignment();
+            
+            if (element is VariableElement variableElement)
             {
-                break;
+                return new AssignElement(variableElement, value);
             }
             
-            if (operatorToken.TokenType == TokenTypes.Assignment)
+            throw new Exception("Expected variable on left side of assignment.");
+        }
+        
+        return element;
+    }
+
+    private IOrbitalElement ParseOrStatement()
+    {
+        IOrbitalElement element = ParseAndStatement(); 
+        
+        while (Match(TokenTypes.Path))
+        {
+            Token? @operator = PeekPrevious();
+            IOrbitalElement right = ParseAndStatement();
+            element = new LogicalElement(element, @operator, right);
+        }
+        
+        return element;
+    }
+    
+    private IOrbitalElement ParseAndStatement()
+    {
+        IOrbitalElement element = ParseEquality();
+
+        while (Match(TokenTypes.Stable))
+        {
+            Token? @operator = PeekPrevious();
+            IOrbitalElement right = ParseElement();
+            element = new LogicalElement(element, @operator, right);
+        }
+        
+        return element;
+    }
+    
+    private IOrbitalElement ParseEquality()
+    {
+        IOrbitalElement element = ParseComparison();
+        
+        while (Match(TokenTypes.Align, TokenTypes.Disrupt))
+        {
+            Token? @operator = PeekPrevious();
+            IOrbitalElement right = ParseElement();
+            element = new LogicalElement(element, @operator, right);
+        }
+        
+        return element;
+    }
+    
+    private IOrbitalElement ParseComparison()
+    {
+        IOrbitalElement element = ParseAddition();
+        
+        while (Match(TokenTypes.Above, TokenTypes.Safe, TokenTypes.Below, TokenTypes.Unsafe))
+        {
+            Token? @operator = PeekPrevious();
+            IOrbitalElement right = ParseElement();
+            element = new LogicalElement(element, @operator, right);
+        }
+        
+        return element;
+    }
+
+    private IOrbitalElement ParseMultiplication()
+    {
+        IOrbitalElement element = Call();
+        
+        while (Match(TokenTypes.Amplify, TokenTypes.Disperse))
+        {
+            Token? @operator = PeekPrevious();
+            IOrbitalElement right = Call();
+            element = new LogicalElement(element, @operator, right);
+        }
+        
+        return element;
+    }
+
+    private IOrbitalElement ParseAddition()
+    {
+        IOrbitalElement element = ParseMultiplication();
+        
+        while (Match(TokenTypes.Gain, TokenTypes.Drain))
+        {
+            Token? @operator = PeekPrevious();
+            IOrbitalElement right = ParseMultiplication();
+            element = new LogicalElement(element, @operator, right);
+        }
+        
+        return element;
+    }
+
+    private IOrbitalElement Call()
+    {
+        IOrbitalElement element = ParsePrimary();
+        
+        while (true)
+        {
+            if (Match(TokenTypes.LeftParenthesis))
             {
-                if (left is not VariableNode variableNode)
-                {
-                    throw new Exception("Left side of assignment must be a variable");
-                }
-                
-                Advance();
-                AbstractTreeNode right = ParseExpression(tokenPrecedence + 1);
-                
-                return new AssignmentNode(variableNode.Name, right, CurrentScope);
-            }
-            else if (IsComparisonOperator(operatorToken.TokenType))
-            {
-                Advance();
-                AbstractTreeNode right = ParseExpression(tokenPrecedence + 1);
-                left = new ComparisonBinaryExpressionNode(left, right, operatorToken.TokenType);
-            }
-            else if (IsLogicalOperator(operatorToken.TokenType))
-            {
-                Advance();
-                AbstractTreeNode right = ParseExpression(tokenPrecedence + 1);
-                left = new LogicalBinaryExpressionNode(left, right, operatorToken.TokenType);
-            }
-            else if (IsMathematicalOperator(operatorToken.TokenType))
-            {
-                Advance();
-                AbstractTreeNode right = ParseMathematicalExpression(tokenPrecedence + 1);
-                
-                AbstractTreeNode? leftNode = left;
-                
-                if (left is StringNode || right is StringNode)
-                {
-                    if (operatorToken.TokenType == TokenTypes.Gain)
-                    {
-                        left = new StringConcatenationNode(left, right);
-                    }
-                    else
-                    {
-                        throw new Exception("Invalid operation on strings");
-                    }
-                }
-                else
-                {
-                    left = new MathematicalBinaryExpressionNode(left, right, operatorToken.TokenType);
-                }
+                element = finishCall(element);
             }
             else
             {
                 break;
             }
         }
-
-        return left;
+        
+        return element;
     }
     
-    // Parses a mathematical expression based on operator precedence
-    private AbstractTreeNode ParseMathematicalExpression(int precedence = 0)
+    private IOrbitalElement ParsePrimary()
     {
-        AbstractTreeNode left = ParsePrimary();
-
-        while (true)
+        if (Match(TokenTypes.Signal))
         {
-            Token operatorToken = CurrentToken();
-            int tokenPrecedence = Precedence(operatorToken);
+            return new LiteralElement(true);
+        }
 
-            if (tokenPrecedence < precedence || !IsMathematicalOperator(operatorToken.TokenType))
+        if (Match(TokenTypes.Void))
+        {
+            return new LiteralElement(false);
+        }
+
+        if (Match(TokenTypes.Null))
+        {
+            return new LiteralElement(null);
+        }
+        
+        if (Match(TokenTypes.Number, TokenTypes.String))
+        {
+            return new LiteralElement(PeekPrevious().Literal);
+        }
+        
+        if (Match(TokenTypes.Identifier))
+        {
+            return new VariableElement(PeekPrevious());
+        }
+        
+        if (Match(TokenTypes.LeftParenthesis))
+        {
+            IOrbitalElement expression = ParseElement();
+            Consume(TokenTypes.RightParenthesis, $"Expected ')' after expression. Line: {PeekPrevious().Line}");
+            return new GroupElement(expression);
+        }
+
+        if (Match(TokenTypes.LeftBrace))
+        {
+            return ParseBlock();
+        }
+        
+        throw new NotImplementedException($"Token not implemented yet, {Peek().TokenType}");
+    }
+
+    private IOrbitalElement finishCall(IOrbitalElement expression)
+    {
+        List<IOrbitalElement> elements = new List<IOrbitalElement>();
+        if (!Check(TokenTypes.RightParenthesis))
+        {
+            do
             {
-                break;
+                elements.Add(ParseElement());
+            } while (Match(TokenTypes.Comma));
+        }
+        
+        Consume(TokenTypes.RightParenthesis, "Expected ')' after arguments.");
+        Token paren = PeekPrevious();
+        
+        return new CallElement(expression, paren, elements);
+    }
+    
+    private IOrbitalElement ParseBlock()
+    {
+        List<IOrbitalElement> statements = new();
+
+        // Consume the opening brace
+        // Consume(TokenTypes.LeftBrace, "Expected '{' to start a block.");
+
+        // Parse statements until the closing brace
+        while (!Check(TokenTypes.RightBrace) && !IsAtEnd())
+        {
+            if (Check(TokenTypes.SemiColon))
+            {
+                Advance();
+                continue;
             }
+            statements.Add(ParseStatement());
+        }
+
+        // Consume the closing brace
+        Consume(TokenTypes.RightBrace, "Expected '}' to close the block.");
+
+        return new BlockElement(statements);
+    }
+    
+    private Token? Advance()
+    {
+        if (!IsAtEnd())
+        {
+            _current++;
+        }
+
+        return PeekPrevious();
+    }
+    
+    private Token? Peek()
+    {
+        return _tokens[_current];
+    }
+    
+    private Token? PeekPrevious()
+    {
+        return _tokens[_current - 1];
+    }
+    
+    private Token Consume(TokenTypes type, string errorMessage)
+    {
+        if (Check(type))
+        {
+            return Advance();
+        }
+        
+        throw new Exception(errorMessage);
+    }
+    
+    private bool Match(params TokenTypes[] types)
+    {
+        foreach (TokenTypes type in types)
+        {
+            if (!Check(type)) continue;
             
             Advance();
-            AbstractTreeNode right = ParseMathematicalExpression(tokenPrecedence + 1);
-            
-            if (left is StringNode || right is StringNode)
-            {
-                if (operatorToken.TokenType == TokenTypes.Gain)
-                {
-                    left = new StringConcatenationNode(left, right);
-                    return left;
-                }
-                else
-                {
-                    throw new Exception("Invalid operation on strings");
-                }
-            }
-            
-            left = new MathematicalBinaryExpressionNode(left, right, operatorToken.TokenType);
+            return true;
         }
-
-        return left;
-    }
-
-    // Checks if the token is a logical operator
-    private bool IsLogicalOperator(TokenTypes operatorTokenTokenType)
-    {
-        return operatorTokenTokenType switch
-        {
-            TokenTypes.Stable or TokenTypes.Path => true,
-            _ => false
-        };
-    }
-
-    // Checks if the token is a comparison operator
-    private bool IsComparisonOperator(TokenTypes tokenType)
-    {
-        return tokenType switch
-        {
-            TokenTypes.Align or TokenTypes.Disrupt or TokenTypes.Above or TokenTypes.Below or TokenTypes.Safe or TokenTypes.Unsafe => true,
-            _ => false
-        };
-    }
-
-    // Checks if the token is a mathematical operator
-    private bool IsMathematicalOperator(TokenTypes tokenType)
-    {
-        return tokenType switch
-        {
-            TokenTypes.Gain or TokenTypes.Drain or TokenTypes.Amplify or TokenTypes.Disperse => true,
-            _ => false
-        };
-    }
-
-    // Parses a primary expression (number, string, boolean, identifier, or parenthesized expression)
-    private AbstractTreeNode ParsePrimary()
-    {
-        Token current = CurrentToken();
-        Advance();
-
-        switch (current.TokenType)
-        {
-            case TokenTypes.Number:
-                return new NumberNode(current.Value);
-            case TokenTypes.String:
-                return new StringNode(current.Value);
-            case TokenTypes.Boolean:
-                return new BooleanNode(current.Value);
-            case TokenTypes.Identifier:
-                if (CheckForFunction())
-                {
-                    return ParseFunction();
-                }
-                
-                VariableNode variableNode = new (current.Value, CurrentScope);
-                if (CurrentScope.Exists(current.Value))
-                {
-                    return variableNode;
-                }
-                
-                CurrentScope.DefineVariable(current.Value, null);
-                // _output.Enqueue(variableNode);
-                return variableNode;
-            case TokenTypes.LeftParenthesis:
-                AbstractTreeNode expression = ParseExpression();
-                if (CurrentToken().TokenType != TokenTypes.RightParenthesis)
-                {
-                    throw new Exception("Expected ')'");
-                }
-                Advance();
-                return expression;
-            case TokenTypes.RightParenthesis:
-                return ParsePrimary();
-            case TokenTypes.LeftBrace:
-                Queue<AbstractTreeNode> body = new();
-                while (CurrentToken().TokenType != TokenTypes.RightBrace)
-                {
-                    AbstractTreeNode node = ParseExpression();
-                    body.Enqueue(node);
-                }
-                Advance();
-                return new BodyNode(body);
-            case TokenTypes.SemiColon:
-                return EmptyNode.Instance;
-            case TokenTypes.EoF:
-                return EndOfFileNode.Instance;
-            case TokenTypes.Align:
-            case TokenTypes.Disrupt:
-            case TokenTypes.Above:
-            case TokenTypes.Below:
-            case TokenTypes.Safe:
-            case TokenTypes.Unsafe:
-            case TokenTypes.Stable:
-            case TokenTypes.Path:
-            case TokenTypes.Gain:
-            case TokenTypes.Drain:
-            case TokenTypes.Amplify:
-            case TokenTypes.Disperse:
-            case TokenTypes.Probe:
-            case TokenTypes.Scan:
-            case TokenTypes.Orbit:
-                return new OperatorNode(current.TokenType);
-            default:
-                throw new Exception("Unexpected token: " + current.TokenType);
-        }
-    }
-
-    // Parses a function call
-    private AbstractFunctionNode ParseFunction()
-    {
-        Token functionToken = PreviousToken();
-        string? functionName = functionToken.Value;
-
-        if (CurrentToken().TokenType != TokenTypes.LeftParenthesis)
-        {
-            throw new Exception("Expected '('");
-        }
-        Advance(); // Skip '('
-
-        List<AbstractTreeNode> arguments = new();
-        while (CurrentToken().TokenType != TokenTypes.RightParenthesis)
-        {
-            AbstractTreeNode argument = ParseExpression();
-            arguments.Add(argument);
-
-            if (CurrentToken().TokenType == TokenTypes.Comma)
-            {
-                Advance();
-            }
-        }
-
-        if (CurrentToken().TokenType != TokenTypes.RightParenthesis)
-        {
-            throw new Exception("Expected ')'");
-        }
-
-        AbstractFunctionNode abstractFunctionNode = BuiltInFunctions.GetFunction(functionName, arguments);
-        return abstractFunctionNode;
+        return false;
     }
     
-    private AbstractTreeNode ParseStatement(OperatorNode operatorNode)
+    private bool Check(TokenTypes type)
     {
-        return operatorNode.Value switch
+        if (IsAtEnd())
         {
-            TokenTypes.Probe => ParseIfElseStatement(),
-            TokenTypes.Orbit => ParseWhileStatement(),
-            _ => throw new Exception("Unexpected token: " + operatorNode.Value)
-        };
+            return false;
+        }
+        return Peek().TokenType == type;
     }
-
-    public IfThenElseStatement ParseIfElseStatement()
+    
+    private bool IsAtEnd()
     {
-        
-        if (CurrentToken().TokenType != TokenTypes.LeftParenthesis)
-        {
-            throw new Exception("Expected '('");
-        }
-        Advance(); // Consume the '(' token
-        
-        AbstractTreeNode condition = ParseExpression();
-        
-        if (CurrentToken().TokenType != TokenTypes.RightParenthesis)
-        {
-            throw new Exception("Expected ')'");
-        }
-        Advance(); // Consume the ')' token
-        
-        if (CurrentToken().TokenType != TokenTypes.LeftBrace)
-        {
-            throw new Exception("Expected '{'");
-        }
-        Queue<AbstractTreeNode> ifBody = new();
-        Scope parentScope = CurrentScope;
-        CurrentScope = new(parentScope);
-        Advance(); // Consume the '{' token
-        while (CurrentToken().TokenType != TokenTypes.RightBrace)
-        {
-            AbstractTreeNode node = ParseExpression();
-            ifBody.Enqueue(node);
-        }
-        Advance(); // Consume the '}' token
-        CurrentScope = parentScope;
-        
-        if (CurrentToken().TokenType != TokenTypes.Scan)
-        {
-            return new IfThenElseStatement(condition, new BodyNode(ifBody));
-        }
-        
-        Advance(); // Consume the 'scan' token
-        
-        if (CurrentToken().TokenType != TokenTypes.LeftBrace)
-        {
-            throw new Exception("Expected '{'");
-        }
-        
-        Queue<AbstractTreeNode> elseBody = new();
-        CurrentScope = new(parentScope);
-        Advance(); // Consume the '{' token
-        while (CurrentToken().TokenType != TokenTypes.RightBrace)
-        {
-            AbstractTreeNode node = ParseExpression();
-            elseBody.Enqueue(node);
-        }
-        Advance(); // Consume the '}' token
-        CurrentScope = parentScope;
-        
-        return new IfThenElseStatement(condition, new BodyNode(ifBody), new BodyNode(elseBody));
-    }
-
-    private WhileStatementNode ParseWhileStatement()
-    {
-        if (CurrentToken().TokenType != TokenTypes.LeftParenthesis)
-        {
-            throw new Exception("Expected '('");
-        }
-        Advance(); // Consume the '(' token
-        
-        AbstractTreeNode condition = ParseExpression();
-        
-        if (CurrentToken().TokenType != TokenTypes.RightParenthesis)
-        {
-            throw new Exception("Expected ')'");
-        }
-        Advance(); // Consume the ')' token
-        
-        if (CurrentToken().TokenType != TokenTypes.LeftBrace)
-        {
-            throw new Exception("Expected '{'");
-        }
-        Queue<AbstractTreeNode> body = new();
-        Scope parentScope = CurrentScope;
-        CurrentScope = new(parentScope);
-        Advance(); // Consume the '{' token
-        while (CurrentToken().TokenType != TokenTypes.RightBrace)
-        {
-            AbstractTreeNode node = ParseExpression();
-            body.Enqueue(node);
-        }
-        Advance(); // Consume the '}' token
-        CurrentScope = parentScope;
-        
-        return new WhileStatementNode(condition, new BodyNode(body));
-    }
-
-    // Checks if the current token is the start of a function call
-    public bool CheckForFunction()
-    {
-        return CurrentToken().TokenType == TokenTypes.LeftParenthesis;
-    }
-
-    // Advances the token position by one
-    private void Advance()
-    {
-        _position++;
-    }
-
-    // Returns the current token
-    private Token CurrentToken()
-    {
-        return IsEnd() ? new Token(TokenTypes.EoF, "") : _tokens[_position];
-    }
-
-    // Returns the previous token
-    private Token PreviousToken()
-    {
-        return _position == 0 ? _tokens[0] : _tokens[_position - 1];
-    }
-
-    // Peeks at the next token without advancing the position
-    private Token Peek()
-    {
-        if (IsEnd())
-        {
-            return new Token(TokenTypes.EoF, "");
-        }
-        return _tokens[_position + 1];
-    }
-
-    // Checks if the end of the token list has been reached
-    private bool IsEnd()
-    {
-        return _position >= _tokens.Count;
-    }
-
-    // Determines the precedence of a token based on its type
-    private int Precedence(Token token)
-    {
-        Array enumValues = typeof(TokenTypes).GetEnumValues();
-        foreach (TokenTypes type in enumValues)
-        {
-            if (type == token.TokenType)
-            {
-                return (int)type;
-            }
-        }
-        return -1;
+        return Peek().TokenType == TokenTypes.EoF;
     }
 }

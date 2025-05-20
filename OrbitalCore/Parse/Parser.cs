@@ -213,7 +213,21 @@ public class Parser
         
         return element;
     }
-    
+
+    private IOrbitalElement ParseMultiplication()
+    {
+        IOrbitalElement element = Call();
+        
+        while (Match(TokenTypes.Amplify, TokenTypes.Disperse))
+        {
+            Token? @operator = PeekPrevious();
+            IOrbitalElement right = ParseMultiplication();
+            element = new LogicalElement(element, @operator, right);
+        }
+        
+        return element;
+    }
+
     private IOrbitalElement ParseAddition()
     {
         IOrbitalElement element = ParseMultiplication();
@@ -221,41 +235,11 @@ public class Parser
         while (Match(TokenTypes.Gain, TokenTypes.Drain))
         {
             Token? @operator = PeekPrevious();
-            IOrbitalElement right = ParseUnary();
+            IOrbitalElement right = ParseMultiplication();
             element = new LogicalElement(element, @operator, right);
         }
         
         return element;
-    }
-    
-    private IOrbitalElement ParseMultiplication()
-    {
-        IOrbitalElement element = ParseUnary();
-        
-        while (Match(TokenTypes.Amplify, TokenTypes.Disperse))
-        {
-            Token? @operator = PeekPrevious();
-            IOrbitalElement right = ParseUnary();
-            element = new LogicalElement(element, @operator, right);
-        }
-        
-        return element;
-    }
-    
-    private IOrbitalElement ParseUnary()
-    {
-        if (Match(TokenTypes.Negate))
-        {
-            return ParseNegate();
-        }
-        if (Match(TokenTypes.Drain))
-        {
-            Token? @operator = PeekPrevious();
-            IOrbitalElement right = ParseUnary();
-            return new UnaryElement(@operator, right);
-        }
-
-        return Call();
     }
 
     private IOrbitalElement Call()

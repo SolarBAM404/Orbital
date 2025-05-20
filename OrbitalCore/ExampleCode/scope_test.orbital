@@ -4,11 +4,14 @@ probe(x align 10) {
     uplink("Entered probe");
     y = 13;
 };
-uplink(a);
-uplink(y);
-uplink(x);
+uplink("Exiting probe");
+uplink("Printing a: " gain a);
+uplink("Printing x: " gain x);
 probe(x align 10) {
     uplink("Entered probe");
     z = 13;
-    uplink(y);
+    uplink("Printing z: " gain z);
 };
+uplink("Exiting probe");
+uplink("Printing y (this should error): ");
+uplink(y);

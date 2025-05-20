@@ -13,7 +13,6 @@ public interface IOrbitalVisitor
     object? VisitBlock(BlockElement element);
     
     void VisitEof();
-    object? VisitUnary(UnaryElement unaryElement);
     object? VisitGroup(GroupElement groupElement);
     object? VisitVariable(VariableElement variableElement);
     void VisitAssignment(AssignElement variableStatementElement);

@@ -1,3 +1,4 @@
+using OrbitalCore.Explosions;
 using OrbitalCore.Lex;
 using OrbitalCore.Parse;
 using OrbitalCore.Parse.Elements;
@@ -209,11 +210,6 @@ public class Interpreter : IOrbitalVisitor
         return;
     }
 
-    public object? VisitUnary(UnaryElement unaryElement)
-    {
-        throw new NotImplementedException();
-    }
-
     public object? VisitGroup(GroupElement groupElement)
     {
         return Evaluate(groupElement.Element);
@@ -262,10 +258,6 @@ public class Interpreter : IOrbitalVisitor
         else if (value is double d)
         {
             return -d;
-        }
-        else if (value is string s)
-        {
-            return Stringy(value);
         }
 
         throw new InvalidOperationRuntimeExplosion(negateElement, $"Cannot negate {value?.GetType()}");

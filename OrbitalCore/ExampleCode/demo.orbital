@@ -1,6 +1,6 @@
 uplink("Demo: Calculating and branching based on value");
-var a = 3 gain 2;      // a = 5
-var b = a amplify 2;   // b = 10
+a = 3 gain 2;
+b = a amplify 2;
 
 uplink("a: " gain a);
 uplink("b: " gain b);

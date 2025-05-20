@@ -127,7 +127,7 @@ public class StringTests
     [Test]
     public void StringTests_Phase5()
     {
-        string code = "uplink(\"false\" align false);";
+        string code = "uplink(\"false\" align void);";
         Orbital.Run(code);
         Assert.That(GetOutput(), Is.EqualTo("False"));
     }

@@ -304,6 +304,11 @@ public class Interpreter : IOrbitalVisitor
         return null;
     }
 
+    public object? VisitCall(CallElement callElement)
+    {
+        return callElement.Callee;
+    }
+
     private object? Evaluate(IOrbitalElement element)
     {
         return element.Accept(this);

@@ -117,7 +117,7 @@ public class VariableTests
     [Test]
     public void VariableTests_Phase4()
     {
-        string code = "errorTest = 5; uplink(errorTest gain false);";
+        string code = "errorTest = 5; uplink(errorTest gain void);";
         Assert.Throws<InvalidOperationRuntimeExplosion>(() => Orbital.Run(code));
     }
 
@@ -140,13 +140,19 @@ public class VariableTests
     }
 
     [Test]
-    public void VariableTests_LocalVariable_Phase3()
+    public void VariableTests_LocalVariable_Phase3_Output()
     {
-        string code = "x = 1; probe (x align 1) {y = 2; uplink(y);}; uplink(x); uplink(y);";
+        string code = "x = 1; probe (x align 1) {y = 2; uplink(y);}; uplink(x);";
         Orbital.Run(code);
         var output = GetOutput();
         Assert.That(output[0], Is.EqualTo("2"));
         Assert.That(output[1], Is.EqualTo("1"));
-        Assert.That(output.Length, Is.EqualTo(2));
+    }
+
+    [Test]
+    public void VariableTests_LocalVariable_Phase3_Error()
+    {
+        string code = "x = 1; probe (x align 1) {y = 2; uplink(y);}; uplink(x); uplink(y);";
+        Assert.Throws<InvalidVariableExplosion>(() => Orbital.Run(code));
     }
 }

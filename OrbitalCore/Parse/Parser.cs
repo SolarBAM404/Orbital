@@ -69,21 +69,21 @@ public class Parser
 
     private IOrbitalElement ParseNegate()
     {
-        IOrbitalElement expression = ParseExpression();
+        IOrbitalElement expression = ParseElement();
         return new NegateElement(expression);
     }
 
     private IOrbitalElement ParseUplink()
     {
-        IOrbitalElement expression = ParseExpression();
-        Consume(TokenTypes.SemiColon, "Expected ';' after expression.");
+        IOrbitalElement expression = ParseElement();
+        Consume(TokenTypes.SemiColon, $"Expected ';' after expression. Line: {PeekPrevious().Line}");
         return new UplinkElement(expression);
     }
     
     private IOrbitalElement ParseIfStatement()
     {
         Consume(TokenTypes.LeftParenthesis, "Expected '(' after 'if'.");
-        IOrbitalElement ifCondition = ParseExpression();
+        IOrbitalElement ifCondition = ParseElement();
         Consume(TokenTypes.RightParenthesis, "Expected ')' after condition.");
 
         IOrbitalElement ifThenCondition = Match(TokenTypes.LeftBrace) ? ParseBlock() : ParseStatement();
@@ -94,7 +94,7 @@ public class Parser
         while (Match(TokenTypes.ProbeScan))
         {
             Consume(TokenTypes.LeftParenthesis, "Expected '(' after 'else if'.");
-            elseIfConditions.Add(ParseExpression());
+            elseIfConditions.Add(ParseElement());
             Consume(TokenTypes.RightParenthesis, "Expected ')' after condition.");
             elseIfThenConditions.Add(ParseStatement());
         }
@@ -123,19 +123,12 @@ public class Parser
     private IOrbitalElement ParseWhileStatement()
     {
         Consume(TokenTypes.LeftParenthesis, "Expected '(' after 'while'.");
-        IOrbitalElement condition = ParseExpression();
+        IOrbitalElement condition = ParseElement();
         Consume(TokenTypes.RightParenthesis, "Expected ')' after condition.");
     
         IOrbitalElement body = ParseStatement();
     
         return new OrbitElement(condition, body);
-    }
-    
-    
-    private IOrbitalElement ParseExpression()
-    {
-        // Start parsing from the lowest precedence (e.g., assignments)
-        return ParseElement();
     }
 
     private IOrbitalElement ParseAssignment()
@@ -179,7 +172,7 @@ public class Parser
         while (Match(TokenTypes.Stable))
         {
             Token? @operator = PeekPrevious();
-            IOrbitalElement right = ParseEquality();
+            IOrbitalElement right = ParseElement();
             element = new LogicalElement(element, @operator, right);
         }
         
@@ -193,7 +186,7 @@ public class Parser
         while (Match(TokenTypes.Align, TokenTypes.Disrupt))
         {
             Token? @operator = PeekPrevious();
-            IOrbitalElement right = ParseComparison();
+            IOrbitalElement right = ParseElement();
             element = new LogicalElement(element, @operator, right);
         }
         
@@ -207,7 +200,7 @@ public class Parser
         while (Match(TokenTypes.Above, TokenTypes.Safe, TokenTypes.Below, TokenTypes.Unsafe))
         {
             Token? @operator = PeekPrevious();
-            IOrbitalElement right = ParseAddition();
+            IOrbitalElement right = ParseElement();
             element = new LogicalElement(element, @operator, right);
         }
         
@@ -221,7 +214,7 @@ public class Parser
         while (Match(TokenTypes.Amplify, TokenTypes.Disperse))
         {
             Token? @operator = PeekPrevious();
-            IOrbitalElement right = ParseMultiplication();
+            IOrbitalElement right = Call();
             element = new LogicalElement(element, @operator, right);
         }
         
@@ -290,8 +283,8 @@ public class Parser
         
         if (Match(TokenTypes.LeftParenthesis))
         {
-            IOrbitalElement expression = ParseExpression();
-            Consume(TokenTypes.RightParenthesis, "Expected ')' after expression.");
+            IOrbitalElement expression = ParseElement();
+            Consume(TokenTypes.RightParenthesis, $"Expected ')' after expression. Line: {PeekPrevious().Line}");
             return new GroupElement(expression);
         }
 
@@ -310,7 +303,7 @@ public class Parser
         {
             do
             {
-                elements.Add(ParseExpression());
+                elements.Add(ParseElement());
             } while (Match(TokenTypes.Comma));
         }
         

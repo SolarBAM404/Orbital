@@ -19,4 +19,5 @@ public interface IOrbitalVisitor
     object? VisitNegate(NegateElement negateElement);
     object? VisitProbe(ProbeElement probeElement);
     object? VisitOrbit(OrbitElement orbitElement);
+    object? VisitCall(CallElement callElement);
 }

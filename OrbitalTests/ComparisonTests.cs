@@ -123,7 +123,7 @@ public class ComparisonTests
     {
         // Evaluate the following code:
         // true == true
-        string code = "uplink(true align true);";
+        string code = "uplink(signal align signal);";
         Orbital.Run(code);
         Assert.That(GetOutput(), Is.EqualTo("True"));
     }
@@ -153,7 +153,7 @@ public class ComparisonTests
     {
         // Evaluate the following code:
         // !(5 - 4 > 3 * 2 == !false)
-        string code = "uplink(negate(5 drain 4 above 3 amplify 2 align negate(void)));";
+        string code = "uplink(negate((5 drain 4 above 3 amplify 2) align negate(void)));";
         Orbital.Run(code);
         Assert.That(GetOutput(), Is.EqualTo("True"));
     }

@@ -12,6 +12,6 @@ public class CallElement(IOrbitalElement callee, Token? paren, List<IOrbitalElem
 
     public object? Accept(IOrbitalVisitor visitor)
     {
-        throw new NotImplementedException();
+        return visitor.VisitCall(this);
     }
 }

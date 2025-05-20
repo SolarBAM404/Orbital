@@ -1,0 +1,13 @@
+uplink("Demo: Calculating and branching based on value");
+var a = 3 gain 2;      // a = 5
+var b = a amplify 2;   // b = 10
+
+uplink("a: " gain a);
+uplink("b: " gain b);
+
+probe(b above 8) {
+    uplink("b is greater than 8");
+} scan {
+    uplink("b is not greater than 8");
+}
+uplink("");

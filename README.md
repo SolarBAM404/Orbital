@@ -1,6 +1,6 @@
-# Orbital Language
+# Orbital Language - A University Project
 
-Orbital is a basic custom-built language using C# as the language on which it runs.
+Orbital is a basic custom-built language using C# as the language on which it runs. Made for my University Language Design module
 
 ## Features
 
